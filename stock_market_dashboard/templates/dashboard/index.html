@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<main class="grid grid-cols-3 gap-4 p-4">
+    <section class="col-span-2">
+        <h2 class="text-xl font-semibold">Price Chart</h2>
+        <canvas id="price-chart" class="bg-white p-4 rounded shadow mb-6"></canvas>
+        <h2 class="text-xl font-semibold">Stock List</h2>
+        <div id="stock-list" class="bg-white p-4 rounded shadow">
+            <table class="min-w-full">
+                <thead>
+                    <tr>
+                        <th class="border-b p-2">Stock Name</th>
+                        <th class="border-b p-2">Symbol</th>
+                        <th class="border-b p-2">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border-b p-2">Example Stock</td>
+                        <td class="border-b p-2">EXM</td>
+                        <td class="border-b p-2">$100.00</td>
+                    </tr>
+                    <!-- More stock rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold">Buy/Sell Stocks</h2>
+        <form id="trade-form">
+            <div class="mb-4">
+                <label class="block text-gray-700">Stock Symbol</label>
+                <input type="text" id="stock-symbol" class="border rounded w-full py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Quantity</label>
+                <input type="number" id="quantity" class="border rounded w-full py-2 px-3" required>
+            </div>
+            <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded">Buy</button>
+            <button type="button" class="bg-red-600 text-white py-2 px-4 rounded" id="sell-button">Sell</button>
+        </form>
+    </section>
+</main>
+<script>
+        // Initialize the price chart
+        const ctx = document.getElementById('price-chart').getContext('2d');
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Dynamic labels
+                datasets: [{
+                    label: 'Stock Price',
+                    data: [], // Dynamic data
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+</script>
+<script>
+// Fetch stock data from the Django backend
+async function fetchStocks() {
+    const response = await fetch('/dashboard/');  // Update to fetch from the dashboard view
+    const stocks = await response.json();
+    const stockList = document.getElementById('stock-list');
+    stockList.innerHTML = '';
+
+    stocks.forEach(stock => {
+        const stockItem = document.createElement('div');
+        stockItem.className = 'border-b p-2';
+        stockItem.innerHTML = `<strong>${stock.name}</strong> (${stock.symbol}): $${stock.price}`;
+        stockList.appendChild(stockItem);
+    });
+}
+
+// Call the fetchStocks function on page load
+window.onload = fetchStocks;
+</script>
+{% endblock %}
